@@ -10,7 +10,8 @@ import sys
 import time
 
 from django.core.servers.basehttp import WSGIServer
-from django.test import LiveServerTestCase
+# from django.test import StaticLiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.test.testcases import QuietWSGIRequestHandler
 from django.utils import six
 import requests
@@ -203,7 +204,7 @@ class Wait(WebDriverWait):
         raise TimeoutException(message)
 
 
-class SeleniumTestCase(LiveServerTestCase):
+class SeleniumTestCase(StaticLiveServerTestCase):
     """
     Base class for Selenium tests.  Allows tests to be written independently
     of which browser they're going to be run in.
