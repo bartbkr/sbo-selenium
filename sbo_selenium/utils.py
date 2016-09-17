@@ -12,6 +12,11 @@ import os
 # listening to its console output.  Obtained from
 # http://stackoverflow.com/questions/3076542/how-can-i-read-all-availably-data-from-subprocess-popen-stdout-non-blocking/3078292#3078292
 
+try:
+    UNICODE_EXISTS = bool(type(unicode))
+except NameError:
+    unicode = lambda s: str(s)
+
 
 class InputStreamChunker(threading.Thread):
     """
@@ -143,6 +148,10 @@ class InputStreamChunker(threading.Thread):
         tf = self._obj[0](*self._obj[1], **self._obj[2])
         while not self._stop:
             l = os.read(self._r, 1)
+            try:
+                l = l.decode()
+            except AttributeError:
+                pass
             marker.pop(0)
             marker.append(l)
             if marker != self._stream_delimiter:
@@ -233,7 +242,7 @@ class DockerSelenium:
             raise Exception(msg.format(self.container_id))
 
         process = Popen(['docker ps | grep ":{}"'.format(self.port)],
-                        shell=True, stdout=PIPE)
+                        shell=True, stdout=PIPE, universal_newlines=True)
         (grep_output, _grep_error) = process.communicate()
         lines = grep_output.split('\n')
         for line in lines:
@@ -251,7 +260,8 @@ class DockerSelenium:
         output = OutputMonitor()
         logs_process = Popen(['docker', 'logs', '-f', self.container_id],
                              stdout=output.stream.input,
-                             stderr=open(os.devnull, 'w'))
+                             stderr=open(os.devnull, 'w'),
+                             universal_newlines=True)
         ready_log_line = 'Selenium Server is up and running'
         if not output.wait_for(ready_log_line, 10):
             logs_process.kill()
